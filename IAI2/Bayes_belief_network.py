@@ -1,29 +1,41 @@
-# pip install pgmpy (different cell or in cmd prompt)
+import numpy as np
 
-from pgmpy.models import BayesianNetwork
-from pgmpy.factors.discrete import TabularCPD
-from pgmpy.inference import VariableElimination
+variables = {
+    'A': ['True', 'False'],
+    'B': ['True', 'False'],
+    'C': ['True', 'False']
+}
 
-# Create a Bayesian Network model
-model = BayesianNetwork([('A', 'C'), ('B', 'C')])
+p_A = np.array([0.6, 0.4])
 
-# Define Conditional Probability Distributions (CPDs)
-cpd_a = TabularCPD(variable='A', variable_card=2, values=[[0.6], [0.4]])
-cpd_b = TabularCPD(variable='B', variable_card=2, values=[[0.7], [0.3]])
-cpd_c = TabularCPD(variable='C', variable_card=2, 
-                   values=[[0.8, 0.9, 0.7, 0.1], [0.2, 0.1, 0.3, 0.9]],
-                   evidence=['A', 'B'],
-                   evidence_card=[2, 2])
+p_B = np.array([0.7, 0.3])
 
-# Add CPDs to the model
-model.add_cpds(cpd_a, cpd_b, cpd_c)
 
-# Check model for consistency
-assert model.check_model()
+p_C_given_AB = np.array([
 
-# Create an inference object
-inference = VariableElimination(model)
+    [0.9, 0.1],
 
-# Calculate probabilities
-result = inference.query(variables=['C'], evidence={'A': 1, 'B': 0})
-print(result)
+    [0.6, 0.4],
+
+    [0.3, 0.7],
+
+    [0.1, 0.9]
+])
+
+
+network_structure = {
+    'A': ['C'],
+    'B': ['C']
+}
+
+def joint_probability(A, B, C):
+    i_A = variables['A'].index(A)
+    i_B = variables['B'].index(B)
+    i_C = variables['C'].index(C)
+    return p_A[i_A] * p_B[i_B] * p_C_given_AB[i_A * 2 + i_B][i_C]
+
+A = 'True'
+B = 'False'
+C = 'True'
+probability = joint_probability(A, B, C)
+print(f'P(A={A}, B={B}, C={C}) = {probability:.3f}')
